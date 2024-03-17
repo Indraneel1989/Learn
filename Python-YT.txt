@@ -1,0 +1,61 @@
+#Importing Library for data manupulation
+import pandas as pd
+#Defining system path to pick file
+path = 'C:/Users/Acer/Downloads/youtube.csv'
+df= pd.read_csv(path)
+df
+# Importing Library for splitting data
+import nltk
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from collections import Counter
+nltk.download('stopwords')
+nltk.download('punkt')
+stop_words = set(stopwords.words('english'))
+def preprocess_text(text):
+    tokens =word_tokenize(text.lower())
+    tokens =[word for word in tokens if word.isalpha() and word not in stop_words]
+    return tokens
+df['title_tokens'] = df['title'].apply(preprocess_text)
+df['tags_tokens'] = df['tags'].apply(preprocess_text)
+df['channel_title_tokens'] = df['channel_title'].apply(preprocess_text)
+print(df[['title_tokens', 'tags_tokens', 'channel_title_tokens']])
+df
+# Assuming df is your DataFrame and 'channel_title_tokens' is the column with tokenized words
+df['channel_title_tokens'] = df['channel_title_tokens'].apply(lambda x: ', '.join(x))
+df['tags_tokens'] = df['tags_tokens'].apply(lambda x: ', '.join(x))
+df['title_tokens'] = df['title_tokens'].apply(lambda x: ', '.join(x))
+df
+# Importing library for removing special characters
+import re
+def remove_special_characters(text):
+    return re.sub(r'[^a-zA-Z0-9]', '', text)
+df['video_id'] = df['video_id'].apply(lambda x: remove_special_characters(x))
+df
+def remove_special_characters(text):
+    return re.sub(r'[^a-zA-Z0-9\s]', '', text)
+df['title'] = df['title'].apply(lambda x: remove_special_characters(x))
+df
+df['channel_title'] = df['channel_title'].apply(lambda x: remove_special_characters(x))
+df
+df['tags'] = df['tags'].apply(lambda x: remove_special_characters(x))
+df
+# Defining date formats
+def parse_trending_date(date_str):
+    try:
+        year, day, month = date_str.split('.')
+        year = int(year)
+        day = int(day)
+        month = int(month)
+        if year < 100:  # Assuming 'yy' format
+            year += 2000  # Convert to 'yyyy' format
+        return pd.Timestamp(year=year, month=month, day=day)
+    except Exception as e:
+        print(f"Error parsing date '{date_str}': {e}")
+        return pd.NaT
+df['trending_date'] = df['trending_date'].apply(parse_trending_date)
+df
+df['publish_date'] = pd.to_datetime(df['publish_date'], dayfirst=True)
+df['publish_date'] = pd.to_datetime(df['publish_date'])
+df
+df.to_csv('C:/Users/Acer/Downloads/youtube_new.csv', index=False)
